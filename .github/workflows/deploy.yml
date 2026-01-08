@@ -7,27 +7,39 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # This is the GitHub runner, your EC2 can be any Linux
 
     steps:
+      # Step 1: Checkout code from GitHub
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Step 2: Deploy to EC2 via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.EC2_HOST }}       # EC2 Public IP
+          username: ${{ secrets.EC2_USER }}   # ec2-user for Amazon Linux
+          key: ${{ secrets.EC2_SSH_KEY }}     # Your private key from GitHub Secrets
           script: |
+            # Navigate to web folder
             cd /var/www/html
+
+            # Remove old files
             rm -rf *
-            echo "Deploying..."
+
+            # Make sure user has permission (optional, run once)
+            # sudo chown -R ec2-user:ec2-user /var/www/html
+
+            # Create index.html
             cat <<EOF > index.html
-            <!DOCTYPE html>
-            <html>
-            <body>
-              <h1>Deployed from GitHub Actions </h1>
-            </body>
-            </html>
-            EOF
+<!DOCTYPE html>
+<html>
+<head>
+  <title>EC2 CI/CD Test</title>
+</head>
+<body>
+  <h1>Deployed from GitHub Actions 🚀</h1>
+</body>
+</html>
+EOF
